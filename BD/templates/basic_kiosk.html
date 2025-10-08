@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Garba Kiosk</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #ff6b35;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: #ff6b35;
+            color: white;
+        }
+        
+        .tab:hover {
+            transform: translateY(-2px);
+        }
+        
+        .section {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        .section h2 {
+            color: #ff6b35;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.8em;
+        }
+        
+        .event-card {
+            border: 2px solid #eee;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .event-card:hover {
+            border-color: #ff6b35;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #ff6b35;
+        }
+        
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        .btn-primary {
+            background: #ff6b35;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #e55a2b;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .alert {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .booking-details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .qr-code {
+            text-align: center;
+            margin: 20px 0;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: white;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .tab {
+                width: 80%;
+                margin: 5px 0;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎪 Garba Kiosk</h1>
+            <p>Simple Ticket Booking System</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" data-section="events" onclick="showSection('events', this)">🏠 Events</button>
+            <button class="tab" data-section="book" onclick="showSection('book', this)">🎫 Book</button>
+            <button class="tab" data-section="checkin" onclick="showSection('checkin', this)">✅ Check In</button>
+            <button class="tab" data-section="lookup" onclick="showSection('lookup', this)">🔍 Lookup</button>
+        </div>
+        
+        <div id="events" class="section active">
+            <h2>Available Events</h2>
+            <div id="events-list">
+            </div>
+        </div>
+
+        <div id="book" class="section">
+            <h2>Book Tickets</h2>
+            <form id="booking-form">
+                <div class="form-group">
+                    <label>Select Event:</label>
+                    <select id="event-select" class="form-control" required>
+                        <option value="">Choose an event...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Number of Tickets:</label>
+                    <input type="number" id="tickets" class="form-control" min="1" max="50" value="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Your Name:</label>
+                    <input type="text" id="customer-name" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Phone Number:</label>
+                    <input type="tel" id="customer-phone" class="form-control" required>
+                </div>
+                
+                <div id="price-display" style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 20px; border-radius: 12px; margin: 20px 0; display: none; text-align: left; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                    <h3 style="margin: 0; font-size: 24px; font-weight: bold;">Total: ₹<span id="total-price">0</span></h3>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Book Now</button>
+                <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset</button>
+            </form>
+            
+            <div id="booking-result"></div>
+        </div>
+
+        <div id="checkin" class="section">
+            <h2>Check In</h2>
+            <div class="form-group">
+                <label>Enter Booking ID:</label>
+                <input type="text" id="checkin-id" class="form-control" placeholder="e.g., GB0915001">
+            </div>
+            <button class="btn btn-primary" onclick="performCheckin()">Check In</button>
+            <div id="checkin-result"></div>
+        </div>
+
+        <div id="lookup" class="section">
+            <h2>Find Booking</h2>
+            <div class="form-group">
+                <label>Enter Booking ID:</label>
+                <input type="text" id="lookup-id" class="form-control" placeholder="e.g., GB0915001">
+            </div>
+            <button class="btn btn-primary" onclick="lookupBooking()">Find Booking</button>
+            <div id="lookup-result"></div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Need Help?</strong> Call: +91-9876543210</p>
+        </div>
+    </div>
+
+    <script>
+        let events = [];
+        let currentBooking = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEvents();
+            document.getElementById('booking-form').addEventListener('submit', handleBooking);
+            document.getElementById('event-select').addEventListener('change', updatePrice);
+            document.getElementById('tickets').addEventListener('change', updatePrice);
+            document.getElementById('tickets').addEventListener('input', updatePrice);  // Real-time updates
+        });
+
+        function showSection(sectionName, tabButton) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            document.getElementById(sectionName).classList.add('active');
+
+            if (tabButton && tabButton.classList) {
+                tabButton.classList.add('active');
+            } else {
+                const btn = document.querySelector(`.tab[data-section="${sectionName}"]`);
+                if (btn) btn.classList.add('active');
+            }
+        }
+
+        async function loadEvents() {
+            try {
+                const response = await fetch('/api/events');
+                const data = await response.json();
+                
+                if (data.success) {
+                    events = data.events;
+                    displayEvents();
+                    populateEventSelect();
+                }
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
+        }
+
+        function displayEvents() {
+            const container = document.getElementById('events-list');
+            container.innerHTML = '';
+            
+            events.forEach(event => {
+                const card = document.createElement('div');
+                card.className = 'event-card';
+
+                let ticketStatus = '';
+                let ticketColor = '';
+                if (event.available === 0) {
+                    ticketStatus = 'SOLD OUT';
+                    ticketColor = 'color: #dc3545; font-weight: bold; background: #f8d7da; padding: 5px 10px; border-radius: 5px;';
+                } else if (event.available <= 5) {
+                    ticketStatus = `ONLY ${event.available} LEFT!`;
+                    ticketColor = 'color: #856404; font-weight: bold; background: #fff3cd; padding: 5px 10px; border-radius: 5px;';
+                } else if (event.available <= 10) {
+                    ticketStatus = `${event.available} tickets available`;
+                    ticketColor = 'color: #0c5460; font-weight: bold; background: #d1ecf1; padding: 5px 10px; border-radius: 5px;';
+                } else {
+                    ticketStatus = `${event.available} tickets available`;
+                    ticketColor = 'color: #155724; font-weight: bold; background: #d4edda; padding: 5px 10px; border-radius: 5px;';
+                }
+                
+                card.innerHTML = `
+                    <h3>${event.name}</h3>
+                    <p><strong>📅 Date:</strong> ${event.date}</p>
+                    <p><strong>⏰ Time:</strong> ${event.time}</p>
+                    <p><strong>📍 Venue:</strong> ${event.venue}</p>
+                    <p><strong>💰 Price:</strong> ₹${event.price}</p>
+                    <p><strong>🎫 Tickets:</strong> <span style="${ticketColor}">${ticketStatus}</span></p>
+                `;
+
+                if (event.available > 0) {
+                    card.addEventListener('click', () => {
+                        const bookTab = document.querySelector('.tab[data-section="book"]');
+                        showSection('book', bookTab);
+
+                        const eventSelectEl = document.getElementById('event-select');
+                        eventSelectEl.value = event.id;
+                        const ticketsInput = document.getElementById('tickets');
+                        const currentTickets = parseInt(ticketsInput.value) || 1;
+                        ticketsInput.value = Math.min(currentTickets, event.available || 1);
+
+                        eventSelectEl.dispatchEvent(new Event('change', { bubbles: true }));
+                        ticketsInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        updatePrice();
+                    });
+                    card.style.cursor = 'pointer';
+                } else {
+                    card.style.cursor = 'not-allowed';
+                    card.style.opacity = '0.6';
+                }
+                
+                container.appendChild(card);
+            });
+        }
+
+        function populateEventSelect() {
+            const select = document.getElementById('event-select');
+            select.innerHTML = '<option value="">Choose an event...</option>';
+            
+            events.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event.id;
+      
+                let availabilityText = '';
+                if (event.available === 0) {
+                    availabilityText = ' (SOLD OUT)';
+                    option.disabled = true;
+                } else if (event.available <= 5) {
+                    availabilityText = ` (Only ${event.available} left!)`;
+                } else {
+                    availabilityText = ` (${event.available} available)`;
+                }
+                
+                option.textContent = `${event.name} - ${event.date}${availabilityText}`;
+                option.dataset.price = event.price;
+                option.dataset.available = event.available;
+                select.appendChild(option);
+            });
+        }
+
+        function updatePrice() {
+            const eventSelect = document.getElementById('event-select');
+            const ticketsInput = document.getElementById('tickets');
+            const priceDisplay = document.getElementById('price-display');
+
+            const selectedEventId = eventSelect.value;
+            const selectedEvent = events.find(ev => String(ev.id) === String(selectedEventId));
+
+            if (!selectedEvent) {
+                priceDisplay.style.display = 'none';
+                return;
+            }
+
+            const price = Number(selectedEvent.price) || 0;
+            const available = Number(selectedEvent.available) || 0;
+            let tickets = parseInt(ticketsInput.value, 10);
+            if (!Number.isFinite(tickets) || tickets < 1) tickets = 1;
+
+            ticketsInput.max = available > 0 ? String(Math.max(1, available)) : '1';
+
+            if (available > 0 && tickets > available) {
+                tickets = available;
+                ticketsInput.value = String(available);
+                alert(`Maximum ${available} tickets available for this event!`);
+            } else {
+                ticketsInput.value = String(tickets);
+            }
+
+            const total = price * tickets;
+
+            priceDisplay.style.display = 'block';
+            if (available === 0) {
+                priceDisplay.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
+                priceDisplay.innerHTML = `
+                    <h3 style="margin: 0; font-size: 24px; font-weight: bold;">❌ SOLD OUT</h3>
+                    <p style="background: rgba(255,255,255,0.9); color: #721c24; padding: 10px; border-radius: 8px; margin-top: 15px; font-weight: bold;">
+                        No tickets available for this event
+                    </p>
+                `;
+            } else if (available <= 5) {
+                priceDisplay.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+                priceDisplay.innerHTML = `
+                    <h3 style="margin: 0; font-size: 24px; font-weight: bold;">Total: ₹${total}</h3>
+                    <p style="color: #856404; background: rgba(255,255,255,0.9); padding: 10px; border-radius: 8px; margin-top: 15px; font-weight: bold;">
+                        ⚠️ Hurry! Only ${available} tickets left!
+                    </p>
+                `;
+            } else {
+                priceDisplay.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+                priceDisplay.innerHTML = `
+                    <h3 style="margin: 0; font-size: 17px; font-weight: bold;">Total: ₹${total}</h3>
+                    <p style="background: rgba(255,255,255,0.2); padding: 8px; border-radius: 8px; margin-top: 10px;">
+                        ${tickets} ticket${tickets > 1 ? 's' : ''} × ₹${price} each
+                    </p>
+                `;
+            }
+        }
+
+        async function handleBooking(e) {
+            e.preventDefault();
+            
+            const formData = {
+                event_id: document.getElementById('event-select').value,
+                name: document.getElementById('customer-name').value,
+                phone: document.getElementById('customer-phone').value,
+                tickets: parseInt(document.getElementById('tickets').value)
+            };
+            
+            try {
+                const response = await fetch('/api/book', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                const resultDiv = document.getElementById('booking-result');
+                
+                if (data.success) {
+                    currentBooking = data.booking;
+                    const remainingTickets = data.remaining_tickets || 'Unknown';
+                    
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <h3>🎉 Booking Successful!</h3>
+                            <p><strong>Booking ID:</strong> ${data.booking.id}</p>
+                            <p style="color: #155724; background: #d4edda; padding: 8px; border-radius: 5px; margin-top: 10px;">
+                                ✅ ${remainingTickets} tickets remaining for this event
+                            </p>
+                        </div>
+                        <div class="booking-details">
+                            <h4>Booking Details:</h4>
+                            <p><strong>Event:</strong> ${data.booking.event_name}</p>
+                            <p><strong>Date:</strong> ${data.booking.event_date}</p>
+                            <p><strong>Customer:</strong> ${data.booking.customer_name}</p>
+                            <p><strong>Phone:</strong> ${data.booking.customer_phone}</p>
+                            <p><strong>Tickets:</strong> ${data.booking.tickets}</p>
+                            <p><strong>Total:</strong> ₹${data.booking.total}</p>
+                        </div>
+                        <div class="qr-code">
+                            <h4>Your Ticket</h4>
+                            <div style="border: 2px solid #ddd; padding: 20px; margin: 10px auto; width: 200px; background: white;">
+                                <div style="text-align: center; font-weight: bold;">QR CODE</div>
+                                <div style="text-align: center; margin: 10px 0;">${data.booking.id}</div>
+                                <div style="text-align: center; font-size: 12px;">${data.booking.event_name}</div>
+                            </div>
+                            <p><small>Show this at the entrance</small></p>
+                        </div>
+                        <button class="btn btn-primary" onclick="window.print()">Print Ticket</button>
+                        <button class="btn btn-secondary" onclick="resetForm()">New Booking</button>
+                    `;
+                    loadEvents();
+                } else {
+                    let errorMessage = `
+                        <div class="alert alert-error">
+                            <h3>❌ Booking Failed</h3>
+                            <p>${data.message}</p>
+                    `;
+                    
+                    if (data.available !== undefined) {
+                        if (data.available === 0) {
+                            errorMessage += `
+                                <p style="font-weight: bold; margin-top: 15px;">
+                                    This event is completely sold out. Please choose another event.
+                                </p>
+                            `;
+                        } else {
+                            errorMessage += `
+                                <p style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-top: 15px;">
+                                    💡 <strong>Tip:</strong> Try booking ${data.available} or fewer tickets
+                                </p>
+                            `;
+                        }
+                    }
+                    
+                    errorMessage += '</div>';
+                    resultDiv.innerHTML = errorMessage;
+             
+                    loadEvents();
+                }
+            } catch (error) {
+                console.error('Booking error:', error);
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('booking-form').reset();
+            document.getElementById('booking-result').innerHTML = '';
+            document.getElementById('price-display').style.display = 'none';
+        }
+
+        async function performCheckin() {
+            const bookingId = document.getElementById('checkin-id').value.trim();
+            
+            if (!bookingId) {
+                alert('Please enter a booking ID');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/checkin', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({booking_id: bookingId})
+                });
+                
+                const data = await response.json();
+                const resultDiv = document.getElementById('checkin-result');
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <h3>✅ Check-in Successful!</h3>
+                            <p>Welcome ${data.booking.customer_name}!</p>
+                            <p><strong>Event:</strong> ${data.booking.event_name}</p>
+                            <p><strong>Tickets:</strong> ${data.booking.tickets}</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-error">
+                            <h3>❌ Check-in Failed</h3>
+                            <p>${data.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Check-in error:', error);
+            }
+        }
+
+        async function lookupBooking() {
+            const bookingId = document.getElementById('lookup-id').value.trim();
+            
+            if (!bookingId) {
+                alert('Please enter a booking ID');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/lookup/${bookingId}`);
+                const data = await response.json();
+                const resultDiv = document.getElementById('lookup-result');
+                
+                if (data.success) {
+                    const booking = data.booking;
+                    const status = booking.checked_in ? '✅ Checked In' : '⏳ Pending Check-in';
+                    
+                    resultDiv.innerHTML = `
+                        <div class="booking-details">
+                            <h3>📋 Booking Found</h3>
+                            <p><strong>Booking ID:</strong> ${booking.id}</p>
+                            <p><strong>Event:</strong> ${booking.event_name}</p>
+                            <p><strong>Date:</strong> ${booking.event_date}</p>
+                            <p><strong>Customer:</strong> ${booking.customer_name}</p>
+                            <p><strong>Phone:</strong> ${booking.customer_phone}</p>
+                            <p><strong>Tickets:</strong> ${booking.tickets}</p>
+                            <p><strong>Total:</strong> ₹${booking.total}</p>
+                            <p><strong>Status:</strong> ${status}</p>
+                            <p><strong>Booked:</strong> ${booking.booked_at}</p>
+                            ${booking.checkin_time ? `<p><strong>Checked in:</strong> ${booking.checkin_time}</p>` : ''}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-error">
+                            <h3>❌ Booking Not Found</h3>
+                            <p>${data.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Lookup error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
